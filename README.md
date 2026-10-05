@@ -10,8 +10,7 @@ The docs in `backend/docs` are fictional (a made-up file storage service, with a
 
 1. **Backend (Python, FastAPI):** loads documents, splits them into chunks, embeds them and stores them in Chroma, then answers questions with Claude using the retrieved chunks and numbered citations.
 2. **Frontend (React + TypeScript):** a chat page that shows the answer, the source passages, helpful / not helpful buttons, and a small usage panel.
-3. **Feedback and logging (SQLite):** every query is stored with latency, token counts and the user's rating. Each request is also written as a JSON log line.
-4. **Evals:** `backend/run_eval.py` runs 21 question/answer pairs (including 4 in Japanese and 1 unanswerable question) through several configurations and scores each answer for faithfulness, relevance and correctness with an LLM judge.
+3. Finding: in a quick test, the search found the correct chunk when the question left out the product name ("What encryption is used?", "How are files encrypted?"), but not when it included it ("What encryption does Hanami Cloud use?"). The product name appears in many chunks, so it pulls in generic passages ahead of the one about encryption. The model behaved correctly: it refused to guess from passages that did not contain the answer.4. **Evals:** `backend/run_eval.py` runs 21 question/answer pairs (including 4 in Japanese and 1 unanswerable question) through several configurations and scores each answer for faithfulness, relevance and correctness with an LLM judge.
 5. **Deployment:** Dockerfile for the backend, a GitHub Actions workflow that checks both halves on every push.
 
 ## Architecture
