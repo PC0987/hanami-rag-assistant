@@ -1,0 +1,86 @@
+[
+  {
+    "question": "How much storage does the Free plan include?",
+    "reference": "5 GB."
+  },
+  {
+    "question": "How much does the Pro plan cost per month?",
+    "reference": "$12 per month, and it includes 2 TB."
+  },
+  {
+    "question": "How long is the verification email link valid?",
+    "reference": "24 hours."
+  },
+  {
+    "question": "Which operating systems does the desktop app support?",
+    "reference": "Windows 10 or later, macOS 12 or later, and Ubuntu 22.04 or later."
+  },
+  {
+    "question": "Can I get a refund on a monthly plan?",
+    "reference": "No, monthly plans are not refundable."
+  },
+  {
+    "question": "How long do I have to ask for a refund on an annual plan?",
+    "reference": "Within 14 days of the first purchase."
+  },
+  {
+    "question": "How much do I save with annual billing?",
+    "reference": "20 percent compared with monthly."
+  },
+  {
+    "question": "What happens if my payment fails?",
+    "reference": "It is retried 3 times over 7 days, then the account is downgraded to the Free plan."
+  },
+  {
+    "question": "Which plans can put a password on a share link?",
+    "reference": "Plus and Pro only."
+  },
+  {
+    "question": "What encryption does Hanami Cloud use?",
+    "reference": "AES-256 at rest and TLS 1.3 in transit."
+  },
+  {
+    "question": "How long are deleted files kept in the Trash on the Plus plan?",
+    "reference": "90 days."
+  },
+  {
+    "question": "How long is version history kept on the Free plan?",
+    "reference": "7 days."
+  },
+  {
+    "question": "What does error code H-507 mean?",
+    "reference": "Your storage is full."
+  },
+  {
+    "question": "What should I do if sync is stuck?",
+    "reference": "Pause and resume sync, check free disk space, then restart the app."
+  },
+  {
+    "question": "How fast does Pro support reply?",
+    "reference": "Within 4 hours."
+  },
+  {
+    "question": "What is the maximum upload file size on the Free plan?",
+    "reference": "2 GB."
+  },
+  {
+    "question": "Does Hanami Cloud offer quantum-resistant encryption?",
+    "reference": "UNANSWERABLE: the docs do not say. A good answer says it could not find this in the documentation."
+  },
+  {
+    "question": "無料プランの容量はどれくらいですか?",
+    "reference": "5GBです。"
+  },
+  {
+    "question": "月額プランは返金できますか?",
+    "reference": "いいえ、月額プランは返金できません。"
+  },
+  {
+    "question": "二要素認証はどこで有効にできますか?",
+    "reference": "「設定」の「セキュリティ」から有効にできます。"
+  },
+  {
+    "question": "サポートの営業時間を教えてください。",
+    "reference": "平日の9:00から18:00(日本時間)です。"
+  }
+]
