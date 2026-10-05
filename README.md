@@ -54,7 +54,8 @@ Results (paste the table from your own run here):
 
 | Config | Faithfulness | Relevance | Correctness | Avg latency (ms) |
 |---|---|---|---|---|
-| (run the eval and paste the output) | | | | |
+| chunk300_k3_baseline | 100% | 96% | 92% | 1769 |
+| chunk300_k3_headings | 100% | 92% | 92% | 1703 |
 
 ## What broke and how I fixed it
 
