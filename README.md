@@ -6,7 +6,7 @@ The docs in `backend/docs` are fictional (a made-up file storage service, with a
 
 **Live demo:** (add your link here after deploying)
 
-## What it includes
+## What it includes 
 
 1. **Backend (Python, FastAPI):** loads documents, splits them into chunks, embeds them and stores them in Chroma, then answers questions with Claude using the retrieved chunks and numbered citations.
 2. **Frontend (React + TypeScript):** a chat page that shows the answer, the source passages, helpful / not helpful buttons, and a small usage panel.
