@@ -1,13 +1,24 @@
-"""Core RAG logic: chunking, embedding + retrieval with Chroma, and answer generation with Claude."""
+"""Core RAG logic: chunking, embedding + retrieval with Chroma, and answer generation with Claude or Gemini."""
 import glob
 import os
 import re
 import time
 
 import chromadb
-from anthropic import Anthropic
 
-MODEL = os.getenv("LLM_MODEL", "claude-haiku-4-5-20251001")
+
+def _provider() -> str:
+    """LLM_PROVIDER=anthropic|google. If unset, use Google when only a Google key is present."""
+    name = os.getenv("LLM_PROVIDER", "").lower()
+    if name in ("anthropic", "google"):
+        return name
+    has_google = bool(os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY"))
+    return "google" if has_google and not os.getenv("ANTHROPIC_API_KEY") else "anthropic"
+
+
+PROVIDER = _provider()
+DEFAULT_MODELS = {"anthropic": "claude-haiku-4-5-20251001", "google": "gemini-2.5-flash"}
+MODEL = os.getenv("LLM_MODEL", DEFAULT_MODELS[PROVIDER])
 DOCS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "docs")
 
 # Two prompt versions so they can be compared in the eval (v2 is stricter about unknown answers).
@@ -24,14 +35,50 @@ PROMPTS = {
     ),
 }
 
-_llm = None
+_clients: dict = {}
 
 
-def llm() -> Anthropic:
-    global _llm
-    if _llm is None:
-        _llm = Anthropic()  # reads ANTHROPIC_API_KEY from the environment
-    return _llm
+def llm():
+    """The provider's SDK client, created on first use."""
+    if PROVIDER not in _clients:
+        if PROVIDER == "google":
+            from google import genai
+
+            _clients[PROVIDER] = genai.Client()  # reads GEMINI_API_KEY or GOOGLE_API_KEY
+        else:
+            from anthropic import Anthropic
+
+            _clients[PROVIDER] = Anthropic()  # reads ANTHROPIC_API_KEY
+    return _clients[PROVIDER]
+
+
+def generate(prompt: str, system: str | None = None, max_tokens: int = 500, model: str | None = None) -> dict:
+    """Call the configured LLM. Returns {"text", "input_tokens", "output_tokens"}."""
+    model = model or MODEL
+    if PROVIDER == "google":
+        from google.genai import types
+
+        resp = llm().models.generate_content(
+            model=model,
+            contents=prompt,
+            # Gemini 2.5 models count hidden "thinking" tokens against the limit, so leave headroom
+            config=types.GenerateContentConfig(system_instruction=system, max_output_tokens=max_tokens + 1024),
+        )
+        usage = resp.usage_metadata
+        return {
+            "text": resp.text or "",
+            "input_tokens": (usage.prompt_token_count or 0) if usage else 0,
+            "output_tokens": (usage.candidates_token_count or 0) if usage else 0,
+        }
+    kwargs = {"system": system} if system else {}
+    resp = llm().messages.create(
+        model=model, max_tokens=max_tokens, messages=[{"role": "user", "content": prompt}], **kwargs
+    )
+    return {
+        "text": resp.content[0].text,
+        "input_tokens": resp.usage.input_tokens,
+        "output_tokens": resp.usage.output_tokens,
+    }
 
 
 def chunk_text(text: str, size: int = 500, overlap: int = 50) -> list[str]:
@@ -93,17 +140,16 @@ class RagIndex:
         start = time.time()
         passages = self.retrieve(question)
         context = "\n\n".join(f"[{i + 1}] ({p['source']}) {p['text']}" for i, p in enumerate(passages))
-        resp = llm().messages.create(
-            model=MODEL,
-            max_tokens=500,
+        out = generate(
+            f"Context:\n{context}\n\nQuestion: {question}",
             system=PROMPTS[self.prompt_version],
-            messages=[{"role": "user", "content": f"Context:\n{context}\n\nQuestion: {question}"}],
+            max_tokens=500,
         )
         return {
-            "answer": resp.content[0].text,
+            "answer": out["text"],
             "passages": passages,
             "context": context,
-            "input_tokens": resp.usage.input_tokens,
-            "output_tokens": resp.usage.output_tokens,
+            "input_tokens": out["input_tokens"],
+            "output_tokens": out["output_tokens"],
             "latency_ms": int((time.time() - start) * 1000),
         }

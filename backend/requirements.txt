@@ -3,3 +3,4 @@ uvicorn[standard]>=0.29
 chromadb>=0.5
 anthropic>=0.40
 pydantic>=2.6
+google-genai>=1.0

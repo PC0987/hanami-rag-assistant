@@ -8,29 +8,30 @@ The docs in `backend/docs` are fictional (a made-up file storage service, with a
 
 ## What it includes
 
-1. **Backend (Python, FastAPI):** loads documents, splits them into chunks, embeds them and stores them in Chroma, then answers questions with Claude using the retrieved chunks and numbered citations.
+1. **Backend (Python, FastAPI):** loads documents, splits them into chunks, embeds them and stores them in Chroma, then answers questions with Claude or Gemini using the retrieved chunks and numbered citations.
 2. **Frontend (React + TypeScript):** a chat page that shows the answer, the source passages, helpful / not helpful buttons, and a small usage panel.
-3. **Evals:** `backend/run_eval.py` runs 21 question/answer pairs (including 4 in Japanese and 1 unanswerable question) through several configurations and scores each answer for faithfulness, relevance and correctness with an LLM judge.
+3. **Evals:** `backend/run_eval.py` runs 21 question/answer pairs (including 4 in Japanese and 1 unanswerable question) through several configurations and scores each answer for faithfulness, relevance and correctness with an LLM judge (the same model you configured).
 4. **Deployment:** Dockerfile for the backend, a GitHub Actions workflow that checks both halves on every push.
 
 ## Architecture
 
 ```
 React + TypeScript  -->  FastAPI  -->  Chroma (retrieve top chunks)
-   (chat + stats)          |     -->  Claude (answer with citations)
+   (chat + stats)          |     -->  Claude or Gemini (answer with citations)
                            |
                            +--> SQLite (queries, latency, tokens, feedback)
 ```
 
 ## Run it locally
 
-You need Python 3.11+, Node 20+ and an Anthropic API key.
+You need Python 3.11+, Node 20+ and one API key: a Google Gemini key (free from [Google AI Studio](https://aistudio.google.com/api-keys)) or an Anthropic key. Whichever key you set is used automatically; set `LLM_PROVIDER=google` or `anthropic` to choose explicitly.
 
 ```bash
 # Backend
 cd backend
 pip install -r requirements.txt
-export ANTHROPIC_API_KEY=your-key-here      # Windows PowerShell: $env:ANTHROPIC_API_KEY="your-key-here"
+export GEMINI_API_KEY=your-key-here         # Windows PowerShell: $env:GEMINI_API_KEY="your-key-here"
+# (using Claude instead? set ANTHROPIC_API_KEY the same way)
 uvicorn main:app --reload --port 8000
 
 # Frontend (in a second terminal)
@@ -69,7 +70,7 @@ Backend on Google Cloud Run:
 
 ```bash
 gcloud run deploy hanami-api --source backend --region asia-northeast1 \
-  --allow-unauthenticated --set-env-vars ANTHROPIC_API_KEY=your-key,CORS_ORIGINS=https://your-frontend-url
+  --allow-unauthenticated --set-env-vars GEMINI_API_KEY=your-key,CORS_ORIGINS=https://your-frontend-url
 ```
 
 Frontend on Vercel or Netlify: set the project folder to `frontend`, add the environment variable `VITE_API_URL` with your backend URL, and deploy.

@@ -7,9 +7,9 @@ import json
 import os
 import re
 
-from rag import RagIndex, llm
+from rag import MODEL, PROVIDER, RagIndex, generate
 
-JUDGE_MODEL = os.getenv("JUDGE_MODEL", os.getenv("LLM_MODEL", "claude-haiku-4-5-20251001"))
+JUDGE_MODEL = os.getenv("JUDGE_MODEL", MODEL)
 
 # Add or change configurations here to compare them.
 CONFIGS = [
@@ -36,10 +36,8 @@ Reply with JSON only, for example: {{"faithfulness": 4, "relevance": 5, "correct
 
 def judge(question, reference, context, answer) -> dict:
     prompt = JUDGE_PROMPT.format(question=question, reference=reference, context=context, answer=answer)
-    resp = llm().messages.create(
-        model=JUDGE_MODEL, max_tokens=100, messages=[{"role": "user", "content": prompt}]
-    )
-    match = re.search(r"\{.*?\}", resp.content[0].text, re.S)
+    text = generate(prompt, max_tokens=100, model=JUDGE_MODEL)["text"]
+    match = re.search(r"\{.*?\}", text, re.S)
     try:
         return json.loads(match.group(0))
     except Exception:
@@ -68,7 +66,8 @@ def main():
         rows.append((cfg["name"], pct, round(latency / n)))
 
     lines = [
-        f"Eval set: {len(items)} questions. Scores are the average judge score (1 to 5) as a percentage.",
+        f"Eval set: {len(items)} questions. Answers and judge: {PROVIDER} / {MODEL}. "
+        "Scores are the average judge score (1 to 5) as a percentage.",
         "",
         "| Config | Faithfulness | Relevance | Correctness | Avg latency (ms) |",
         "|---|---|---|---|---|",
